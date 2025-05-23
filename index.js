@@ -17,6 +17,8 @@ const PORT = 3001;
 app.use(bodyParser.json({ limit: "20mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "20mb" }));
 
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
 app.use(cors());
 app.use(express.json());
 
@@ -35,7 +37,7 @@ app.post("/search", async (req, res) => {
         Authorization: `Bearer ${process.env.IGDB_ACCESS_TOKEN}`,
         "Content-Type": "text/plain",
       },
-      body: `search "${query}"; fields name,cover.url; limit 20;`,
+      body: `search "${query}"; fields name,cover.url; where category != (3,11,12,13) ;limit 20;`,
     });
 
     const igdbData = await response.json();
@@ -69,7 +71,7 @@ app.post("/searchImage", async (req, res) => {
         Authorization: `Bearer ${process.env.IGDB_ACCESS_TOKEN}`,
         "Content-Type": "text/plain",
       },
-      body: `search "${query}"; fields name,cover.url; limit 1;`,
+      body: `fields name, cover.url; where name = "${query}" & category != (3,5,11,12,13); ; limit 1;`,
     });
 
     const igdbData = await response.json();
@@ -117,8 +119,6 @@ app.post("/geminiText", async (req, res) => {
     res.status(500).json({ error: "Error al comunicarse con Gemini" });
   }
 });
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.post("/gemini-vision", async (req, res) => {
   const { prompt, imageBase64 } = req.body;
@@ -170,25 +170,21 @@ app.post("/gemini-vision", async (req, res) => {
     if (!searchResponse.ok) {
       const errorData = await searchResponse.json();
       console.error("Search endpoint error:", errorData);
-      return res
-        .status(searchResponse.status)
-        .json({
-          error: "Error al buscar detalles del juego",
-          details: errorData,
-        });
+      return res.status(searchResponse.status).json({
+        error: "Error al buscar detalles del juego",
+        details: errorData,
+      });
     }
 
     const searchResults = await searchResponse.json();
-    console.log(searchResults)
-    res.json({searchResults });
+    console.log(searchResults);
+    res.json({ searchResults });
   } catch (error) {
     console.error("Error en /gemini-vision:", error);
-    res
-      .status(500)
-      .json({
-        error: "Error al comunicarse con Gemini Vision",
-        details: error.message,
-      });
+    res.status(500).json({
+      error: "Error al comunicarse con Gemini Vision",
+      details: error.message,
+    });
   }
 });
 
