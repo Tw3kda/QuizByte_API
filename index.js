@@ -106,7 +106,7 @@ app.post("/geminiText", async (req, res) => {
             },
           ],
         }),
-      }
+      } 
     );
 
     const data = await response.json();
@@ -163,7 +163,7 @@ app.post("/gemini-vision", async (req, res) => {
       );
     }
 
-    const searchResponse = await fetch(`http://localhost:${PORT}/searchImage`, {
+    const searchResponse = await fetch(`https://quiz-byte-api.vercel.app/searchImage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: text }),
